@@ -1,0 +1,35 @@
+services:
+  catalog-pg:
+    image: postgres:16.3-alpine
+    restart: on-failure
+    environment:
+      POSTGRES_USER: ${CATALOG_PG_USER}
+      POSTGRES_PASSWORD: ${CATALOG_PG_PASSWORD}
+      POSTGRES_DB: ${CATALOG_PG_DB}
+    volumes:
+      - catalog_pg_data:/var/lib/postgresql/data
+    ports:
+      - "15432:5432"
+    healthcheck:
+      test: pg_isready -U ${CATALOG_PG_USER} -d ${CATALOG_PG_DB}
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+  catalog-api:
+    build:
+      context: ./catalog
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      catalog-pg:
+        condition: service_healthy
+    volumes:
+      - ./catalog/app/:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+
+volumes:
+  catalog_pg_data:
