@@ -25,6 +25,7 @@ class Settings(BaseSettings):
         env_nested_delimiter='__',
         extra='ignore'
     )
+    api_v1_prefix: str = '/api/v1'
     db: DatabaseConfig
 
 
