@@ -16,20 +16,53 @@ services:
       timeout: 3s
       retries: 3
 
+  orders-pg:
+    image: postgres:16.3-alpine
+    restart: on-failure
+    environment:
+      POSTGRES_USER: ${ORDER_PG_USER}
+      POSTGRES_PASSWORD: ${ORDER_PG_PASSWORD}
+      POSTGRES_DB: ${ORDER_PG_DB}
+    volumes:
+      - orders_pg_data:/var/lib/postgresql/data
+    ports:
+      - "25432:5432"
+    healthcheck:
+      test: pg_isready -U ${ORDER_PG_USER} -d ${ORDER_PG_DB}
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
   catalog-api:
     build:
-      context: ./catalog
+      context: catalog_service
       dockerfile: Dockerfile
     restart: always
     depends_on:
       catalog-pg:
         condition: service_healthy
     volumes:
-      - ./catalog/app/:/app
+      - ./catalog_service/app/:/app
     ports:
       - "8000:8000"
     env_file:
       - .env
 
+  orders-api:
+    build:
+      context: orders_service
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      orders-pg:
+        condition: service_healthy
+    volumes:
+      - ./orders_service/app/:/app
+    ports:
+      - "8001:8000"
+    env_file:
+      - .env
+
 volumes:
   catalog_pg_data:
+  orders_pg_data:
