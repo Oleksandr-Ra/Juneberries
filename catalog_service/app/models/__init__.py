@@ -5,5 +5,4 @@ __all__ = (
 )
 
 from .base import Base
-from .product import Category
-from .product import Product
+from .product import Category, Product

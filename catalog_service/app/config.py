@@ -2,11 +2,6 @@ from pydantic import BaseModel, PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class RunConfig(BaseModel):
-    host: str = '0.0.0.0'
-    port: int = 8000
-
-
 class DatabaseConfig(BaseModel):
     url_catalog: PostgresDsn
     echo: bool = False
@@ -30,7 +25,6 @@ class Settings(BaseSettings):
         env_nested_delimiter='__',
         extra='ignore'
     )
-    run: RunConfig = RunConfig()
     db: DatabaseConfig
 
 
