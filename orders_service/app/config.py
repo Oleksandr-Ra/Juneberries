@@ -2,13 +2,13 @@ from pydantic import BaseModel, PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class RunConfig(BaseModel):
-    host: str = '0.0.0.0'
-    port: int = 8000
-
-
 class DatabaseConfig(BaseModel):
-    url_catalog: PostgresDsn
+    orders_pg_user: str
+    orders_pg_password: str
+    orders_pg_host: str
+    orders_pg_port: int
+    orders_pg_db: str
+
     echo: bool = False
     echo_pool: bool = False
     pool_size: int = 50
@@ -22,6 +22,17 @@ class DatabaseConfig(BaseModel):
         'pk': 'pk_%(table_name)s',
     }
 
+    @property
+    def orders_pg_url(self) -> PostgresDsn:
+        return PostgresDsn.build(
+            scheme='postgresql+asyncpg',
+            username=self.orders_pg_user,
+            password=self.orders_pg_password,
+            host=self.orders_pg_host,
+            port=self.orders_pg_port,
+            path=f'/{self.orders_pg_db}',
+        )
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -30,7 +41,7 @@ class Settings(BaseSettings):
         env_nested_delimiter='__',
         extra='ignore'
     )
-    run: RunConfig = RunConfig()
+    api_v1_prefix: str = '/api/v1'
     db: DatabaseConfig
 
 

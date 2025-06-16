@@ -3,33 +3,109 @@ services:
     image: postgres:16.3-alpine
     restart: on-failure
     environment:
-      POSTGRES_USER: ${CATALOG_PG_USER}
-      POSTGRES_PASSWORD: ${CATALOG_PG_PASSWORD}
-      POSTGRES_DB: ${CATALOG_PG_DB}
+      POSTGRES_USER: ${DB__CATALOG_PG_USER}
+      POSTGRES_PASSWORD: ${DB__CATALOG_PG_PASSWORD}
+      POSTGRES_DB: ${DB__CATALOG_PG_DB}
     volumes:
       - catalog_pg_data:/var/lib/postgresql/data
     ports:
       - "15432:5432"
     healthcheck:
-      test: pg_isready -U ${CATALOG_PG_USER} -d ${CATALOG_PG_DB}
+      test: pg_isready -U ${DB__CATALOG_PG_USER} -d ${DB__CATALOG_PG_DB}
       interval: 5s
       timeout: 3s
       retries: 3
 
+  orders-pg:
+    image: postgres:16.3-alpine
+    restart: on-failure
+    environment:
+      POSTGRES_USER: ${DB__ORDERS_PG_USER}
+      POSTGRES_PASSWORD: ${DB__ORDERS_PG_PASSWORD}
+      POSTGRES_DB: ${DB__ORDERS_PG_DB}
+    volumes:
+      - orders_pg_data:/var/lib/postgresql/data
+    ports:
+      - "25432:5432"
+    healthcheck:
+      test: pg_isready -U ${DB__ORDERS_PG_USER} -d ${DB__ORDERS_PG_DB}
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+  reviews-mongo:
+    image: mongo:7.0.21
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB__REVIEWS_MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB__REVIEWS_MONGO_PASSWORD}
+    volumes:
+      - reviews_mongo_data:/data/db
+    ports:
+      - 27017:27017
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+  mongo-express:
+    image: mongo-express:1.0.2-20
+    restart: always
+    depends_on:
+      - reviews-mongo
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://${DB__REVIEWS_MONGO_USERNAME}:${DB__REVIEWS_MONGO_PASSWORD}@reviews-mongo:27017/
+      ME_CONFIG_BASICAUTH: false
+
   catalog-api:
     build:
-      context: ./catalog
+      context: catalog_service
       dockerfile: Dockerfile
     restart: always
     depends_on:
       catalog-pg:
         condition: service_healthy
     volumes:
-      - ./catalog/app/:/app
+      - ./catalog_service/app/:/app
     ports:
       - "8000:8000"
     env_file:
       - .env
 
+  orders-api:
+    build:
+      context: orders_service
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      orders-pg:
+        condition: service_healthy
+    volumes:
+      - ./orders_service/app/:/app
+    ports:
+      - "8001:8000"
+    env_file:
+      - .env
+
+  reviews-api:
+    build:
+      context: reviews_service
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      reviews-mongo:
+        condition: service_healthy
+    volumes:
+      - ./reviews_service/app/:/app
+    ports:
+      - "8002:8000"
+    env_file:
+      - .env
+
 volumes:
   catalog_pg_data:
+  orders_pg_data:
+  reviews_mongo_data:
