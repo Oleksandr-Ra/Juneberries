@@ -50,7 +50,7 @@ class DatabaseHelper:
 
 
 db_helper = DatabaseHelper(
-    url=str(settings.db.url_catalog),
+    url=str(settings.db.catalog_pg_url),
     echo=settings.db.echo,
     echo_pool=settings.db.echo_pool,
     pool_size=settings.db.pool_size,
