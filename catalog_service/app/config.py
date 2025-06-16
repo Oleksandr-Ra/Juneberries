@@ -3,7 +3,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class DatabaseConfig(BaseModel):
-    url_catalog: PostgresDsn
+    catalog_pg_user: str
+    catalog_pg_password: str
+    catalog_pg_host: str
+    catalog_pg_port: int
+    catalog_pg_db: str
+
     echo: bool = False
     echo_pool: bool = False
     pool_size: int = 50
@@ -16,6 +21,17 @@ class DatabaseConfig(BaseModel):
         'fk': 'fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s',
         'pk': 'pk_%(table_name)s',
     }
+
+    @property
+    def catalog_pg_url(self) -> PostgresDsn:
+        return PostgresDsn.build(
+            scheme='postgresql+asyncpg',
+            username=self.catalog_pg_user,
+            password=self.catalog_pg_password,
+            host=self.catalog_pg_host,
+            port=self.catalog_pg_port,
+            path=f'/{self.catalog_pg_db}',
+        )
 
 
 class Settings(BaseSettings):
