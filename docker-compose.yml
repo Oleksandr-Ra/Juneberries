@@ -107,7 +107,7 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      - .env
+      - ./catalog_service/.env
 
   orders-api:
     build:
@@ -122,7 +122,7 @@ services:
     ports:
       - "8001:8000"
     env_file:
-      - .env
+      - ./orders_service/.env
 
   reviews-api:
     build:
@@ -137,7 +137,7 @@ services:
     ports:
       - "8002:8000"
     env_file:
-      - .env
+      - ./reviews_service/.env
 
 volumes:
   catalog_pg_data:
