@@ -51,7 +51,7 @@ class DatabaseHelper:
 
 def create_db_helper(config: DatabaseConfig) -> DatabaseHelper:
     return DatabaseHelper(
-        url=str(config.orders_pg_url),
+        url=str(config.url),
         echo=config.echo,
         echo_pool=config.echo_pool,
         pool_size=config.pool_size,

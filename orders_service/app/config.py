@@ -23,7 +23,7 @@ class DatabaseConfig(BaseModel):
     }
 
     @property
-    def orders_pg_url(self) -> PostgresDsn:
+    def url(self) -> PostgresDsn:
         return PostgresDsn.build(
             scheme='postgresql+asyncpg',
             username=self.orders_pg_user,
