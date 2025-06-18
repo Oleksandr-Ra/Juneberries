@@ -36,7 +36,7 @@ class DatabaseConfig(BaseModel):
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=('.env', '../../.env'),
+        env_file=('.env', '../.env'),
         case_sensitive=False,
         env_nested_delimiter='__',
         extra='ignore'
