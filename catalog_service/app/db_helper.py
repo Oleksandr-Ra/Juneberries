@@ -3,7 +3,7 @@ from asyncio import current_task
 from sqlalchemy.ext.asyncio import (create_async_engine, AsyncEngine, async_sessionmaker,
                                     AsyncSession, async_scoped_session)
 
-from config import DatabaseConfig
+from config import settings
 
 
 class DatabaseHelper:
@@ -49,11 +49,23 @@ class DatabaseHelper:
             await session.remove()
 
 
-def create_db_helper(config: DatabaseConfig) -> DatabaseHelper:
+def create_db_helper(
+        url: str,
+        echo: bool = False,
+        echo_pool: bool = False,
+        pool_size: int = 50,
+        max_overflow: int = 10,
+) -> DatabaseHelper:
     return DatabaseHelper(
-        url=str(config.url),
-        echo=config.echo,
-        echo_pool=config.echo_pool,
-        pool_size=config.pool_size,
-        max_overflow=config.max_overflow,
+        url=url,
+        echo=echo,
+        echo_pool=echo_pool,
+        pool_size=pool_size,
+        max_overflow=max_overflow,
     )
+
+
+db_helper = create_db_helper(
+    url=settings.db.url,
+    echo=settings.db.echo,
+)
