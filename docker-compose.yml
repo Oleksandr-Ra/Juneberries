@@ -1,4 +1,21 @@
 services:
+  auth-pg:
+    image: postgres:16.3-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB__AUTH_PG_USER}
+      POSTGRES_PASSWORD: ${DB__AUTH_PG_PASSWORD}
+      POSTGRES_DB: ${DB__AUTH_PG_DB}
+    volumes:
+      - auth_pg_data:/var/lib/postgresql/data
+    ports:
+      - "35432:5432"
+    healthcheck:
+      test: pg_isready -U ${DB__AUTH_PG_USER} -d ${DB__AUTH_PG_DB}
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
   catalog-pg:
     image: postgres:16.3-alpine
     restart: on-failure
@@ -109,3 +126,4 @@ volumes:
   catalog_pg_data:
   orders_pg_data:
   reviews_mongo_data:
+  auth_pg_data:
