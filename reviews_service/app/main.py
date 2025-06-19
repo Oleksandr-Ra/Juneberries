@@ -24,6 +24,6 @@ app = FastAPI(
     lifespan=lifespan,
     default_response_class=ORJSONResponse,
     title='Reviews Service',
-    description='Сервис, где пользователь может оставить отзыв. FastAPI, MongoDB, Docker, Pytest',
+    description='Сохранение и редактирование отзывов по товарам. FastAPI, MongoDB, Kafka, Docker',
 )
 app.include_router(api_v1_router)
