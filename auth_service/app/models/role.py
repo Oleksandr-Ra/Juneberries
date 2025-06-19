@@ -15,7 +15,7 @@ class Role(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(20), unique=True)
-    description: Mapped[str | None] = mapped_column(Text())
+    description: Mapped[str | None] = mapped_column(Text)
 
     users: Mapped[list['User']] = relationship(back_populates='role')
     permissions: Mapped[list['Permission']] = relationship(

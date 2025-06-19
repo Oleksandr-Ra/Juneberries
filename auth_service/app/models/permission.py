@@ -14,7 +14,7 @@ class Permission(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     code: Mapped[str] = mapped_column(String(20), unique=True)
-    description: Mapped[str | None] = mapped_column(Text())
+    description: Mapped[str | None] = mapped_column(Text)
 
     roles: Mapped[list['Role']] = relationship(
         secondary='roles_permissions',
