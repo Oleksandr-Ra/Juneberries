@@ -3,11 +3,6 @@ from fastapi import APIRouter
 router = APIRouter(tags=['Orders'])
 
 
-@router.get('/orders',)
-async def get_orders():
-    pass
-
-
 @router.post('/orders',)
 async def create_order():
     pass
@@ -18,8 +13,8 @@ async def get_order():
     pass
 
 
-@router.put('/orders/{id}',)
-async def update_order():
+@router.patch('/orders/{id}',)
+async def update_order_status():
     pass
 
 
