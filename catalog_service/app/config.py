@@ -30,7 +30,7 @@ class DatabaseConfig(BaseModel):
             password=self.catalog_pg_password,
             host=self.catalog_pg_host,
             port=self.catalog_pg_port,
-            path=f'/{self.catalog_pg_db}',
+            path=self.catalog_pg_db,
         )
 
 
