@@ -1,11 +1,15 @@
 import uuid
 from datetime import datetime, timezone
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from sqlalchemy import String, Text, Numeric, ForeignKey, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from models import Base
+
+if TYPE_CHECKING:
+    from models import Category
 
 
 class Product(Base):
