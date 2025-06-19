@@ -1,14 +1,14 @@
-from datetime import datetime
+import uuid
+
 from pydantic import BaseModel, Field
 
 
 class ReviewCreateSchema(BaseModel):
-    product_id: int
-    user_id: int
+    product_id: uuid.UUID
+    user_id: uuid.UUID
     rating: int = Field(ge=1, le=5)
-    comment: str | None = None
+    text: str = ''
 
 
 class ReviewSchema(ReviewCreateSchema):
     id: str = Field(alias='_id')
-    created_at: datetime
