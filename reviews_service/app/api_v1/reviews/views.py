@@ -8,7 +8,7 @@ router = APIRouter(tags=['Reviews'])
 
 
 @router.post('/reviews', response_model=ReviewSchema)
-async def create_review(request: Request, review: ReviewCreateSchema):
+async def add_review(request: Request, review: ReviewCreateSchema):
     review_dict: dict = review.dict()
     review_dict['created_at'] = datetime.now(timezone.utc)
 
@@ -17,21 +17,16 @@ async def create_review(request: Request, review: ReviewCreateSchema):
     return review_dict
 
 
-@router.get('/reviews',)
-async def get_reviews():
+@router.get('/reviews/{product_id}',)
+async def get_reviews_by_product():
     pass
 
 
-@router.get('/reviews/{id}',)
-async def get_review():
+@router.patch('/reviews/{product_id}',)
+async def refresh_review():
     pass
 
 
-@router.put('/reviews/{id}',)
-async def update_review():
-    pass
-
-
-@router.delete('/reviews/{id}',)
+@router.delete('/reviews/{product_id}',)
 async def delete_review():
     pass
