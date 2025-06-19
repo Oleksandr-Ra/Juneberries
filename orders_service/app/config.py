@@ -30,7 +30,7 @@ class DatabaseConfig(BaseModel):
             password=self.orders_pg_password,
             host=self.orders_pg_host,
             port=self.orders_pg_port,
-            path=f'/{self.orders_pg_db}',
+            path=self.orders_pg_db,
         )
 
 
