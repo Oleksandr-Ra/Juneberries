@@ -3,11 +3,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class DatabaseConfig(BaseModel):
-    catalog_pg_user: str
-    catalog_pg_password: str
-    catalog_pg_host: str
-    catalog_pg_port: int
-    catalog_pg_db: str
+    auth_pg_user: str
+    auth_pg_password: str
+    auth_pg_host: str
+    auth_pg_port: int
+    auth_pg_db: str
 
     echo: bool = False
     echo_pool: bool = False
@@ -26,11 +26,11 @@ class DatabaseConfig(BaseModel):
     def url(self) -> PostgresDsn:
         return PostgresDsn.build(
             scheme='postgresql+asyncpg',
-            username=self.catalog_pg_user,
-            password=self.catalog_pg_password,
-            host=self.catalog_pg_host,
-            port=self.catalog_pg_port,
-            path=f'/{self.catalog_pg_db}',
+            username=self.auth_pg_user,
+            password=self.auth_pg_password,
+            host=self.auth_pg_host,
+            port=self.auth_pg_port,
+            path=self.auth_pg_db,
         )
 
 

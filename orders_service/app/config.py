@@ -23,7 +23,7 @@ class DatabaseConfig(BaseModel):
     }
 
     @property
-    def orders_pg_url(self) -> PostgresDsn:
+    def url(self) -> PostgresDsn:
         return PostgresDsn.build(
             scheme='postgresql+asyncpg',
             username=self.orders_pg_user,
@@ -36,7 +36,7 @@ class DatabaseConfig(BaseModel):
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=('.env', '../../.env'),
+        env_file=('.env', '../.env'),
         case_sensitive=False,
         env_nested_delimiter='__',
         extra='ignore'

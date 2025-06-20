@@ -9,7 +9,7 @@ from config import settings
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    client = AsyncIOMotorClient(settings.db.reviews_mongo_url)
+    client = AsyncIOMotorClient(settings.db.url)
     app.state.mongo_client = client
     app.state.db = client[settings.db.reviews_mongo_db]
     print("✅ Connected to MongoDB")

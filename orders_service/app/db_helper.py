@@ -49,10 +49,23 @@ class DatabaseHelper:
             await session.remove()
 
 
-db_helper = DatabaseHelper(
-    url=str(settings.db.orders_pg_url),
+def create_db_helper(
+        url: str,
+        echo: bool = False,
+        echo_pool: bool = False,
+        pool_size: int = 50,
+        max_overflow: int = 10,
+) -> DatabaseHelper:
+    return DatabaseHelper(
+        url=url,
+        echo=echo,
+        echo_pool=echo_pool,
+        pool_size=pool_size,
+        max_overflow=max_overflow,
+    )
+
+
+db_helper = create_db_helper(
+    url=settings.db.url,
     echo=settings.db.echo,
-    echo_pool=settings.db.echo_pool,
-    pool_size=settings.db.pool_size,
-    max_overflow=settings.db.max_overflow,
 )
