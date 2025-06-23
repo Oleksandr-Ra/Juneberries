@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from api_v1.auth.schemas import (
+from .schemas import (
     UserSchema,
     UserCreateSchema,
     AccessRefreshTokensSchema,
     AuthLoginSchema,
 )
-from api_v1.auth.services import AuthService, get_auth_service
+from .services import AuthService, get_auth_service
 
 router = APIRouter(prefix='/auth', tags=['Authentication'])
 
