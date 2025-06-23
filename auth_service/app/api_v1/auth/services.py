@@ -5,8 +5,8 @@ from fastapi import Depends, HTTPException, status
 from jwt import ExpiredSignatureError, InvalidTokenError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api_v1.auth.schemas import UserCreateSchema, AuthLoginSchema, AccessRefreshTokensSchema
-from api_v1.auth.crud import get_user_by_email, create_user, get_user
+from .schemas import UserCreateSchema, AuthLoginSchema, AccessRefreshTokensSchema
+from . import crud
 
 from config import settings
 from db import get_db
@@ -22,16 +22,16 @@ class AuthService:
         self.session = session
 
     async def register_user(self, reg_data: UserCreateSchema) -> User:
-        if await get_user_by_email(session=self.session, email=reg_data.email):
+        if await crud.get_user_by_email(session=self.session, email=reg_data.email):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail='A user with this email already exists'
             )
         reg_data.password_hash = get_password_hash(reg_data.password_hash)
-        return await create_user(session=self.session, user_data=reg_data)
+        return await crud.create_user(session=self.session, user_data=reg_data)
 
     async def login_user(self, login_data: AuthLoginSchema) -> AccessRefreshTokensSchema:
-        user = await get_user_by_email(self.session, login_data.email)
+        user = await crud.get_user_by_email(self.session, login_data.email)
         if not user or not verify_password(hashed=user.password_hash, password=login_data.password_hash):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -92,7 +92,7 @@ class AuthService:
 
     async def get_user_from_token(self, payload: dict) -> User:
         user_id = UUID(payload.get('sub'))
-        user = await get_user(session=self.session, user_id=user_id)
+        user = await crud.get_user(session=self.session, user_id=user_id)
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
