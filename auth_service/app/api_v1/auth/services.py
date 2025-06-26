@@ -22,7 +22,7 @@ class AuthService:
         self.session = session
 
     async def register_user(self, reg_data: UserCreateSchema) -> User:
-        if await crud.get_user_by_email(session=self.session, email=reg_data.email):
+        if await crud.check_user_by_email(session=self.session, email=reg_data.email):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail='A user with this email already exists'
@@ -51,6 +51,7 @@ class AuthService:
         access_payload = {
             'sub': str(user.id),
             'role_id': user.role_id,
+            'permissions': [p.code for p in user.role.permissions],
             'type': ACCESS_TOKEN_TYPE,
         }
         return encode_jwt(
