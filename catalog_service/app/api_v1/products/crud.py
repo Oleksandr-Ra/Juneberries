@@ -1,9 +1,10 @@
 from uuid import UUID
 
+from api_v1.products.schemas import ProductCreateSchema, ProductUpdateSchema, ProductUpdatePartialSchema
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
-from api_v1.products.schemas import ProductCreateSchema, ProductUpdateSchema, ProductUpdatePartialSchema
 from models import Product
 
 
@@ -14,6 +15,9 @@ async def get_product(session: AsyncSession, product_id: UUID) -> Product | None
 async def get_products(session: AsyncSession) -> list[Product]:
     result = await session.scalars(
         select(Product)
+        .options(
+            selectinload(Product.category)
+        )
         .order_by(Product.created_at.desc())
     )
     return list(result.all())
