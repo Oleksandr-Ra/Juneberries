@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, status
 
 from models import Product
+from permissions import permission_required
 from . import services
 from .schemas import ProductSchema, ProductsSchema
 
@@ -8,6 +9,7 @@ router = APIRouter(prefix='/products', tags=['Products'])
 
 
 @router.post('', response_model=ProductSchema, status_code=status.HTTP_201_CREATED)
+@permission_required('product_create')
 async def create_product(
         product: Product = Depends(services.create_product),
 ):
@@ -15,6 +17,7 @@ async def create_product(
 
 
 @router.get('', response_model=list[ProductsSchema])
+@permission_required('products_read')
 async def get_products(
         products: list[Product] = Depends(services.get_products),
 ):
@@ -22,6 +25,7 @@ async def get_products(
 
 
 @router.get('/{id}', response_model=ProductSchema)
+@permission_required('product_read')
 async def get_product(
         product: Product = Depends(services.get_product_by_id),
 ):
@@ -29,6 +33,7 @@ async def get_product(
 
 
 @router.patch('/{id}', response_model=ProductSchema)
+@permission_required('product_update')
 async def update_product(
         product: Product = Depends(services.update_product),
 ):
@@ -36,5 +41,6 @@ async def update_product(
 
 
 @router.delete('/{id}', status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(services.delete_product)])
+@permission_required('product_delete')
 async def delete_product():
     pass
