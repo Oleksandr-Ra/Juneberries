@@ -9,6 +9,8 @@ from .schemas import (
 )
 from .services import AuthService, get_auth_service
 
+security = HTTPBearer(description='Enter your JWT token here')
+
 router = APIRouter(prefix='/auth', tags=['Authentication'])
 
 
@@ -30,7 +32,7 @@ async def login(
 
 @router.get('/me', response_model=UserSchema)
 async def current_user_info(
-        credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
+        credentials: HTTPAuthorizationCredentials = Depends(security),
         auth_service: AuthService = Depends(get_auth_service),
 ):
     return await auth_service.get_current_user_info(access_token=credentials.credentials)
@@ -38,7 +40,7 @@ async def current_user_info(
 
 @router.post('/refresh', response_model=AccessRefreshTokensSchema)
 async def refresh(
-        credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
+        credentials: HTTPAuthorizationCredentials = Depends(security),
         auth_service: AuthService = Depends(get_auth_service),
 ):
     return await auth_service.refresh_access_token(refresh_token=credentials.credentials)
