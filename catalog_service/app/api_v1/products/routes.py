@@ -32,7 +32,7 @@ async def get_products(
 
 
 @router.get(
-    '/{id}',
+    '/{product_id}',
     response_model=ProductSchema,
     dependencies=[Depends(permission_required('products_read'))],
 )
@@ -43,7 +43,7 @@ async def get_product(
 
 
 @router.patch(
-    '/{id}',
+    '/{product_id}',
     response_model=ProductSchema,
     dependencies=[Depends(permission_required('product_update'))],
 )
@@ -54,7 +54,7 @@ async def update_product(
 
 
 @router.delete(
-    '/{id}',
+    '/{product_id}',
     status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[
         Depends(permission_required('product_delete')),
