@@ -2,6 +2,11 @@ from pydantic import BaseModel, PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+class AuthJWT(BaseModel):
+    secret_key: str
+    algorithm: str
+
+
 class DatabaseConfig(BaseModel):
     orders_pg_user: str
     orders_pg_password: str
@@ -41,7 +46,9 @@ class Settings(BaseSettings):
         extra='ignore'
     )
     api_v1_prefix: str = '/api/v1'
+    auth_jwt: AuthJWT
     db: DatabaseConfig
+    product_url: str = 'http://catalog-api:8000/api/v1/products'
 
 
 settings = Settings()
