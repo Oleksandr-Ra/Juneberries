@@ -113,7 +113,5 @@ class AuthService:
         return await self.get_user_from_token(payload=payload)
 
 
-def get_auth_service(
-    session: AsyncSession = Depends(get_db),
-) -> AuthService:
+def get_auth_service(session: AsyncSession = Depends(get_db)) -> AuthService:
     return AuthService(session=session)
