@@ -2,6 +2,11 @@ from pydantic import BaseModel, PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+class AuthJWT(BaseModel):
+    secret_key: str
+    algorithm: str
+
+
 class DatabaseConfig(BaseModel):
     orders_pg_user: str
     orders_pg_password: str
@@ -10,7 +15,6 @@ class DatabaseConfig(BaseModel):
     orders_pg_db: str
 
     echo: bool = False
-    echo_pool: bool = False
     pool_size: int = 50
     max_overflow: int = 10
 
@@ -30,7 +34,7 @@ class DatabaseConfig(BaseModel):
             password=self.orders_pg_password,
             host=self.orders_pg_host,
             port=self.orders_pg_port,
-            path=f'/{self.orders_pg_db}',
+            path=self.orders_pg_db,
         )
 
 
@@ -42,7 +46,9 @@ class Settings(BaseSettings):
         extra='ignore'
     )
     api_v1_prefix: str = '/api/v1'
+    auth_jwt: AuthJWT
     db: DatabaseConfig
+    product_url: str = 'http://catalog-api:8000/api/v1/products'
 
 
 settings = Settings()

@@ -1,8 +1,8 @@
-"""Create categories and products tables
+"""Create tables
 
-Revision ID: cf0f01815ed5
+Revision ID: 9b1bbb306359
 Revises:
-Create Date: 2025-06-11 20:57:33.194619
+Create Date: 2025-06-19 09:05:37.556958
 
 """
 
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "cf0f01815ed5"
+revision: str = "9b1bbb306359"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -23,26 +23,30 @@ def upgrade() -> None:
     """Upgrade schema."""
     op.create_table(
         "categories",
-        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("name", sa.String(length=100), nullable=False),
-        sa.Column("description", sa.Text(), nullable=True),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_categories")),
         sa.UniqueConstraint("name", name=op.f("uq_categories_name")),
     )
     op.create_table(
         "products",
-        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("name", sa.String(length=200), nullable=False),
-        sa.Column("description", sa.Text(), nullable=True),
+        sa.Column("description", sa.Text(), nullable=False),
         sa.Column("price", sa.Numeric(precision=10, scale=2), nullable=False),
+        sa.Column("category_id", sa.UUID(), nullable=False),
         sa.Column(
-            "currency",
-            sa.String(length=3),
-            server_default="USD",
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
-        sa.Column("stock", sa.Integer(), server_default="0", nullable=False),
-        sa.Column("category_id", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(
             ["category_id"],
             ["categories.id"],

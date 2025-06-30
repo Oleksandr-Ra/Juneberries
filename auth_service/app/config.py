@@ -2,6 +2,13 @@ from pydantic import BaseModel, PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+class AuthJWT(BaseModel):
+    secret_key: str
+    algorithm: str
+    access_token_expire_minutes: int = 15
+    refresh_token_expire_days: int = 30
+
+
 class DatabaseConfig(BaseModel):
     auth_pg_user: str
     auth_pg_password: str
@@ -10,7 +17,6 @@ class DatabaseConfig(BaseModel):
     auth_pg_db: str
 
     echo: bool = False
-    echo_pool: bool = False
     pool_size: int = 50
     max_overflow: int = 10
 
@@ -42,6 +48,7 @@ class Settings(BaseSettings):
         extra='ignore'
     )
     api_v1_prefix: str = '/api/v1'
+    auth_jwt: AuthJWT
     db: DatabaseConfig
 
 

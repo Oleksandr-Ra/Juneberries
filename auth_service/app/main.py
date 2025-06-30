@@ -9,5 +9,6 @@ app = FastAPI(
     title='Auth Service',
     description='Выдача/обновление access и refresh токенов. FastAPI, PostgreSQL, JWT, Redis (для refresh токенов), '
                 'SQLAlchemy(v2), Docker, Pytest',
+    version='1.0.0',
 )
 app.include_router(api_v1_router)
