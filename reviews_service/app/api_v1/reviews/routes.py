@@ -1,32 +1,52 @@
-from datetime import datetime, timezone
+from typing import Any
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, status
 
-from schemas import ReviewCreateSchema, ReviewSchema
+from permissions import permission_required
+from .schemas import ReviewSchema
+from .services import (
+    create_review_service,
+    get_reviews_by_product_service,
+    update_review_service,
+    delete_review_service,
+)
 
-router = APIRouter(tags=['Reviews'])
-
-
-@router.post('/reviews', response_model=ReviewSchema)
-async def add_review(request: Request, review: ReviewCreateSchema):
-    review_dict: dict = review.dict()
-    review_dict['created_at'] = datetime.now(timezone.utc)
-
-    result = await request.app.state.db['reviews'].insert_one(review_dict)
-    review_dict['_id'] = str(result.inserted_id)
-    return review_dict
+router = APIRouter(prefix='/reviews', tags=['Reviews'])
 
 
-@router.get('/reviews/{product_id}',)
-async def get_reviews_by_product():
-    pass
+@router.post(
+    '',
+    status_code=status.HTTP_201_CREATED,
+    response_model=ReviewSchema,
+)
+async def create_review(
+        review: dict[str, Any] = Depends(create_review_service)
+):
+    return review
 
 
-@router.patch('/reviews/{product_id}',)
-async def refresh_review():
-    pass
+@router.get(
+    '/{product_id}',
+    response_model=list[ReviewSchema],
+    dependencies=[Depends(permission_required('reviews_read'))],
+)
+async def get_reviews_by_product(
+        reviews: list[dict[str, Any]] = Depends(get_reviews_by_product_service)
+):
+    return reviews
 
 
-@router.delete('/reviews/{product_id}',)
+@router.patch('/{product_id}', response_model=ReviewSchema)
+async def update_review(
+        review: dict[str, Any] = Depends(update_review_service),
+):
+    return review
+
+
+@router.delete(
+    '/{product_id}',
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(delete_review_service)],
+)
 async def delete_review():
     pass

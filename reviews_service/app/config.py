@@ -2,6 +2,11 @@ from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+class AuthJWT(BaseModel):
+    secret_key: str
+    algorithm: str
+
+
 class DatabaseConfig(BaseModel):
     reviews_mongo_username: str
     reviews_mongo_password: str
@@ -25,6 +30,7 @@ class Settings(BaseSettings):
         extra='ignore'
     )
     api_v1_prefix: str = '/api/v1'
+    auth_jwt: AuthJWT
     db: DatabaseConfig
 
 
