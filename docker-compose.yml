@@ -139,8 +139,26 @@ services:
     env_file:
       - ./reviews_service/.env
 
+  kafka:
+    image: confluentinc/cp-kafka:7.9.2
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_KRAFT_MODE: "true"
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      CLUSTER_ID: MkU3BE5OTNcwNTK4NDR2Qk
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+
 volumes:
   catalog_pg_data:
   orders_pg_data:
   reviews_mongo_data:
   auth_pg_data:
+  kafka_data:

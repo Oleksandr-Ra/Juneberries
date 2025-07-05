@@ -4,6 +4,7 @@ from uuid import UUID
 from fastapi import Depends, Path, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from kafka_producer import kafka_producer
 from db import get_db
 from models import Order, OrderItem
 from utils import fetch_product_data
@@ -43,7 +44,18 @@ async def create_order(
         'items': order_items,
     }
 
-    return await crud.create_order(session=session, order_data=new_order)
+    order = await crud.create_order(session=session, order_data=new_order)
+    if not order:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Could not create order.')
+
+    message = {
+        'event_type': 'ORDER_CREATED',
+        'order_id': str(order.id),
+        'user_id': str(order.user_id)
+    }
+    kafka_producer.send_message(topic='order_events', message=message)
+
+    return order
 
 
 async def get_orders(

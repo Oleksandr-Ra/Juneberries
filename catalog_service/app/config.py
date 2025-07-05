@@ -1,4 +1,4 @@
-from pydantic import BaseModel, PostgresDsn
+from pydantic import BaseModel, PostgresDsn, KafkaDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -46,6 +46,8 @@ class Settings(BaseSettings):
         extra='ignore'
     )
     api_v1_prefix: str = '/api/v1'
+    kafka_broker: KafkaDsn
+
     auth_jwt: AuthJWT
     db: DatabaseConfig
 
