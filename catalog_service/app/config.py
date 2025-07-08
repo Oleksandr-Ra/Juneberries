@@ -1,4 +1,4 @@
-from pydantic import BaseModel, PostgresDsn, KafkaDsn
+from pydantic import BaseModel, PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
