@@ -139,6 +139,19 @@ services:
     env_file:
       - ./reviews_service/.env
 
+  celery_worker:
+    build:
+      context: celery_worker_service
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - kafka
+      - redis
+    volumes:
+      - ./celery_worker_service/app/:/app
+    env_file:
+      - ./celery_worker_service/.env
+
   kafka:
     image: confluentinc/cp-kafka:7.9.2
     ports:
@@ -148,7 +161,7 @@ services:
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_NODE_ID: 1
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
