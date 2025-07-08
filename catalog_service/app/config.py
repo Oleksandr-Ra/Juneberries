@@ -46,7 +46,7 @@ class Settings(BaseSettings):
         extra='ignore'
     )
     api_v1_prefix: str = '/api/v1'
-    kafka_broker: KafkaDsn
+    kafka_broker: str
 
     auth_jwt: AuthJWT
     db: DatabaseConfig
