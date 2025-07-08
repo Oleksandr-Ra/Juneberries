@@ -1,31 +1,21 @@
 from fastapi import APIRouter, Depends, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from db import get_db
 from models import Order
 from permissions import permission_required
 from . import services
-from .schemas import OrderWithItemsSchema, OrderSchema, OrderCreateSchema, OrdersSchema
+from .schemas import OrderSchema, OrdersSchema
+from .services import create_order
 
 router = APIRouter(prefix='/orders', tags=['Orders'])
 
 
 @router.post(
     '',
-    response_model=OrderWithItemsSchema,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_order(
-        order_data: list[OrderCreateSchema],
-        payload: dict = Depends(permission_required('order_create')),
-        session: AsyncSession = Depends(get_db),
+        order: dict = Depends(create_order)
 ):
-    order: Order = await services.create_order(
-        user_id=payload['sub'],
-        token=payload['token'],
-        order_data=order_data,
-        session=session,
-    )
     return order
 
 
@@ -57,7 +47,7 @@ async def get_order(
     dependencies=[Depends(permission_required('order_update'))],
 )
 async def update_order_status(
-        order: Order = Depends(services.update_order),
+        order: Order = Depends(services.update_order_status),
 ):
     return order
 

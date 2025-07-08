@@ -1,10 +1,15 @@
-from pydantic import BaseModel, PostgresDsn, KafkaDsn
+from pydantic import BaseModel, PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class AuthJWT(BaseModel):
     secret_key: str
     algorithm: str
+
+
+class KafkaConfig(BaseModel):
+    broker: str
+    order_topic: str
 
 
 class DatabaseConfig(BaseModel):
@@ -47,9 +52,9 @@ class Settings(BaseSettings):
     )
     api_v1_prefix: str = '/api/v1'
     product_url: str = 'http://catalog-api:8000/api/v1/products'
-    kafka_broker: KafkaDsn
 
     auth_jwt: AuthJWT
+    kafka: KafkaConfig
     db: DatabaseConfig
 
 
