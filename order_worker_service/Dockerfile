@@ -1,6 +1,6 @@
 FROM python:3.12-slim
 
-RUN groupadd -g 1001 celery_worker && useradd -u 1001 -g celery_worker api
+RUN groupadd -g 1001 order_worker && useradd -u 1001 -g order_worker api
 
 WORKDIR /app
 
@@ -15,3 +15,5 @@ RUN pip install -r requirements.txt
 COPY app/ .
 
 USER api
+
+CMD ["python", "main.py"]

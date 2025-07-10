@@ -1,11 +1,10 @@
 import logging
+from datetime import timedelta
 
 import aiohttp
 
-from datetime import timedelta
-
-from config import settings
 import redis_connect
+from config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -18,9 +17,9 @@ async def get_currency_rate(target_currency: str = 'RUB') -> float:
     if redis_connect.redis_client is None:
         raise RuntimeError('Redis client not initialized')
 
-    rate_key: str = f'{settings.exchange_api.base_currency}_{target_currency}'
+    rate_key: str = f'rates:{settings.exchange_api.base_currency}_{target_currency}'
     # 1. Get from Redis
-    cached_rate = await redis_connect.redis_client.get(rate_key)
+    cached_rate: str | None = await redis_connect.redis_client.get(rate_key)
     if cached_rate:
         logger.info(f'Found currency rate in cache: {cached_rate}')
         return float(cached_rate)
@@ -33,13 +32,13 @@ async def get_currency_rate(target_currency: str = 'RUB') -> float:
         raise
 
     rate: float = response['rates'][target_currency]  # get rate from response
-    logger.info(f'Fetched rate from API: {rate_key} - {rate}')
+    logger.info(f'Fetched new rate from API: {rate_key} = {rate}')
 
     # Set in Redis with expiration
-    await redis_connect.redis_client.setex(
+    await redis_connect.redis_client.set(
         name=rate_key,
-        time=timedelta(minutes=settings.redis.rate_exp),
         value=rate,
+        ex=timedelta(minutes=settings.redis.rate_exp),
     )
     return rate
 

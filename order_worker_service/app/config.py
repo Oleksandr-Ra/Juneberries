@@ -2,6 +2,11 @@ from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+class KafkaConfig(BaseModel):
+    broker: str
+    order_topic: str
+
+
 class RedisConfig(BaseModel):
     host: str
     port: int
@@ -28,6 +33,8 @@ class Settings(BaseSettings):
         env_nested_delimiter='__',
         extra='ignore'
     )
+
+    kafka: KafkaConfig
     redis: RedisConfig
     exchange_api: ExchangeAPIConfig
 

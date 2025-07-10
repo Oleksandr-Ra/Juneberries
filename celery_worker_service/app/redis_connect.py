@@ -1,3 +1,10 @@
 from redis.asyncio import Redis
 
-redis_client: Redis | None = None
+from config import settings
+
+redis_client = Redis(
+    host=settings.redis.host,
+    port=settings.redis.port,
+    db=settings.redis.db,
+    decode_responses=True,
+)

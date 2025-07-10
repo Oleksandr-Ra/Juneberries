@@ -117,6 +117,8 @@ services:
     depends_on:
       orders-pg:
         condition: service_healthy
+      kafka:
+        condition: service_healthy
     volumes:
       - ./orders_service/app/:/app
     ports:
@@ -139,18 +141,48 @@ services:
     env_file:
       - ./reviews_service/.env
 
-  celery_worker:
+  order-worker:
+    build:
+      context: order_worker_service
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./order_worker_service/app/:/app
+    env_file:
+      - order_worker_service/.env
+
+  celery-worker:
     build:
       context: celery_worker_service
       dockerfile: Dockerfile
     restart: always
+    command: ["celery", "-A", "celery_app", "worker", "--loglevel=info"]
     depends_on:
-      - kafka
-      - redis
+      redis:
+        condition: service_healthy
     volumes:
       - ./celery_worker_service/app/:/app
     env_file:
-      - ./celery_worker_service/.env
+      - celery_worker_service/.env
+
+  celery-beat:
+    build:
+      context: celery_worker_service
+      dockerfile: Dockerfile
+    restart: always
+    command: ["celery", "-A", "celery_app", "beat", "--loglevel=info"]
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./celery_worker_service/app/:/app
+    env_file:
+      - celery_worker_service/.env
 
   kafka:
     image: confluentinc/cp-kafka:7.9.2
@@ -168,6 +200,11 @@ services:
       CLUSTER_ID: MkU3BE5OTNcwNTK4NDR2Qk
     volumes:
       - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: [ "CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list" ]
+      interval: 5s
+      timeout: 5s
+      retries: 3
 
   redis:
     image: redis:7.4.3-alpine
@@ -177,6 +214,11 @@ services:
     volumes:
       - redis_data:/data
     command: [ "redis-server", "--appendonly", "yes" ]  # Enable saving to disk (AOF)
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 3s
+      timeout: 3s
+      retries: 3
 
 volumes:
   catalog_pg_data:

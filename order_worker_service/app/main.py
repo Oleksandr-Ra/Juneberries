@@ -23,7 +23,7 @@ async def process_message(message_data: dict, producer: AIOKafkaProducer) -> Non
 
     logger.info(f'Starting processing for order_id: {order_id}')
 
-    rate: float = await get_currency_rate('RUB')
+    rate: float = await get_currency_rate(target_currency=settings.exchange_api.target_currency)
 
     delivery_price_target: float = round(delivery_price * rate, 2)
     cart_price_target: float = round(cart_price * rate, 2)
