@@ -34,17 +34,17 @@ async def get_categories(
     cached_categories = await request.app.state.redis.get(CATEGORIES_KEY)
     if cached_categories is not None:
         categories = pickle.loads(cached_categories)
-        logger.info('🆒 Categories taken from Redis.')
+        logger.info('Categories taken from Redis.')
         return categories
 
     categories = await crud.get_categories(session=session)
-    logger.info('⬆️ Categories taken from Postgres.')
+    logger.info('Categories taken from Postgres.')
     await request.app.state.redis.set(
         name=CATEGORIES_KEY,
         value=pickle.dumps(categories),
         ex=timedelta(days=settings.redis.categories_ttl),
     )
-    logger.info('🆕 Categories are installed in Redis.')
+    logger.info('Categories are installed in Redis.')
     return categories
 
 
