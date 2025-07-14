@@ -23,7 +23,7 @@ async def get_categories(
 
 
 async def get_category_by_id(
-        category_id: UUID = Path,
+        category_id: UUID = Path(...),
         session: AsyncSession = Depends(get_db),
 ) -> Category:
     category: Category | None = await crud.get_category(session=session, category_id=category_id)

@@ -23,7 +23,7 @@ async def get_products(
 
 
 async def get_product_by_id(
-        product_id: UUID = Path,
+        product_id: UUID = Path(...),
         session: AsyncSession = Depends(get_db),
 ) -> Product:
     product: Product | None = await crud.get_product(session=session, product_id=product_id)

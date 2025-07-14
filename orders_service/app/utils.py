@@ -1,6 +1,6 @@
 from uuid import UUID
 
-import httpx
+import aiohttp
 from fastapi import HTTPException, status
 
 from api_v1.orders.schemas import ProductDataSchema
@@ -12,29 +12,32 @@ async def fetch_product_data(product_id: UUID, token: str) -> ProductDataSchema:
 
     url = f'{settings.product_url}/{product_id}'
     headers = {'Authorization': f'Bearer {token}'}
+    timeout = aiohttp.ClientTimeout(total=3.0)
 
-    async with httpx.AsyncClient() as client:
+    async with aiohttp.ClientSession(timeout=timeout) as session:
         try:
-            response = await client.get(url, headers=headers, timeout=3.0)
+            async with session.get(url=url, headers=headers) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    return ProductDataSchema(**data)
+                elif response.status == 404:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail='The product with ID {product_id} is not found in the catalog.',
+                    )
+                else:
+                    text = await response.text()
+                    raise HTTPException(
+                        status_code=status.HTTP_502_BAD_GATEWAY,
+                        detail=f'Catalog service error: {response.status} - {text}',
+                    )
 
-            if response.status_code == status.HTTP_200_OK:
-                return ProductDataSchema(**response.json())
-
-            elif response.status_code == status.HTTP_404_NOT_FOUND:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail='The product with ID {product_id} is not found in the catalog.',
-                )
-            else:
-                # Another errors from catalog service.
-                response.raise_for_status()
-
-        except httpx.ConnectError:
+        except aiohttp.ClientConnectionError:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail='No connection with catalog service. Try again later.',
             )
-        except httpx.TimeoutException:
+        except aiohttp.ClientTimeout:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail='Catalog service is temporarily unavailable. Try again later.',

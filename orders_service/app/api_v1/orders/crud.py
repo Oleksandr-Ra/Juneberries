@@ -29,9 +29,9 @@ async def create_order(session: AsyncSession, order_data: dict) -> Order:
 async def update_order(
         session: AsyncSession,
         order: Order,
-        order_data: OrderUpdateStatusSchema,
+        order_data: dict,
 ) -> Order:
-    for key, value in order_data.model_dump(exclude_unset=True).items():
+    for key, value in order_data.items():
         setattr(order, key, value)
     await session.commit()
     return order
