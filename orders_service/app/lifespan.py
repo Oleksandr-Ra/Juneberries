@@ -23,11 +23,11 @@ async def consume_events():
     try:
         await consumer.start()
     except Exception as e:
-        logger.error(f'🛑 Could not connect to AIOKafkaConsumer: {e}')
+        logger.error(f'Could not connect to AIOKafkaConsumer: {e}')
 
     try:
         async for msg in consumer:
-            logger.info(f'📥 Received: {msg.value} | type: {type(msg.value)}')
+            logger.info(f'Received: {msg.value} | type: {type(msg.value)}')
             if msg.value.get('event_type') == 'ORDER_UPDATED':
                 await process_message(message_data=msg.value)
     finally:
@@ -45,26 +45,26 @@ async def lifespan(app: FastAPI):
         await producer.start()
     except Exception as e:
         app.state.producer = None
-        logger.error(f'🛑 Could not connect to AIOKafkaProducer: {e}')
+        logger.error(f'Could not connect to AIOKafkaProducer: {e}')
 
     app.state.producer = producer
-    logger.info('✅ Successfully connected to AIOKafkaProducer.')
+    logger.info('Successfully connected to AIOKafkaProducer.')
 
     consumer_task = asyncio.create_task(consume_events())
     app.state.consumer_task = consumer_task
-    logger.info('✅ Successfully connected to AIOKafkaConsumer.')
+    logger.info('Successfully connected to AIOKafkaConsumer.')
 
     yield
 
     if app.state.producer:
         await app.state.producer.flush()
         await app.state.producer.stop()
-        logger.info('❌ AIOKafkaProducer closed')
+        logger.info('AIOKafkaProducer closed')
     else:
-        logger.info('❗ No active AIOKafkaProducer found in "app.state" to close.')
+        logger.info('No active AIOKafkaProducer found in "app.state" to close.')
 
     app.state.consumer_task.cancel()
     try:
         await app.state.consumer_task
     except asyncio.CancelledError:
-        logger.info('❌ Consumer task successfully canceled')
+        logger.info('Consumer task successfully canceled')

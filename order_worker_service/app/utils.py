@@ -60,12 +60,12 @@ async def fetch_currency_rate_from_api() -> dict | None:
                 if response.status == 200:
                     return await response.json()
                 else:
-                    logger.error(f'❌ Error to get data from rate API.')
+                    logger.error(f'Error to get data from rate API.')
                     return None
 
         except aiohttp.ClientConnectionError:
-            logger.error(f'❌ No connection with catalog service. Try again later.')
+            logger.error(f'No connection with catalog service. Try again later.')
             return None
         except aiohttp.ClientTimeout:
-            logger.error(f'❌ Rate API is temporarily unavailable. Try again later.')
+            logger.error(f'Rate API is temporarily unavailable. Try again later.')
             return None

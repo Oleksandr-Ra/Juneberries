@@ -122,16 +122,15 @@ async def process_message(message_data: dict,) -> None:
         'total_price': total_price,
         'status': order_status,
     }
-    print('---UPDATE_ORDER_DATA---', update_order_data)
 
     async with async_session() as session:
         order: Order | None = await crud.get_order(session=session, order_id=UUID(order_id))
         if order is None:
-            logger.error(f'🛑 Order {order_id} not found! Create order process not finished!')
+            logger.error(f'Order {order_id} not found! Create order process not finished!')
 
         await crud.update_order(
             session=session,
             order=order,
             order_data=update_order_data,
         )
-        logger.error(f'✅ Order {order_id} successfully updated!')
+        logger.error(f'Order {order_id} successfully updated!')

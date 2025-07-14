@@ -63,28 +63,28 @@ async def main() -> None:
             decode_responses=True,
         )
         await redis_connect.redis_client.ping()
-        logger.info('✅ Successfully connected to Redis.')
+        logger.info('Successfully connected to Redis.')
 
         await producer.start()
         await consumer.start()
-        logger.info('✅ Kafka Consumer and Producer started.')
+        logger.info('Kafka Consumer and Producer started.')
 
         async for msg in consumer:
             if msg.value.get('event_type') == 'ORDER_CREATED':
                 await process_message(message_data=msg.value, producer=producer)
 
     except Exception as e:
-        logger.error(f'🛑 A critical error occurred: {e}', exc_info=True)
+        logger.error(f'A critical error occurred: {e}', exc_info=True)
 
     finally:
         await consumer.stop()
         await producer.stop()
-        logger.info('❌ Kafka clients stopped.')
+        logger.info('Kafka clients stopped.')
 
         if redis_connect.redis_client:
             await redis_connect.redis_client.aclose()
-            logger.info('❌ Redis connection closed.')
-        logger.info('❗ Shutdown complete.')
+            logger.info('Redis connection closed.')
+        logger.info('Shutdown complete.')
 
 
 if __name__ == '__main__':
