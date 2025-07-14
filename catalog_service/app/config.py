@@ -38,6 +38,13 @@ class DatabaseConfig(BaseModel):
         )
 
 
+class RedisConfig(BaseModel):
+    host: str
+    port: int
+    db: int
+    categories_ttl: int  # days
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=('.env', '../.env'),
@@ -50,6 +57,7 @@ class Settings(BaseSettings):
 
     auth_jwt: AuthJWT
     db: DatabaseConfig
+    redis: RedisConfig
 
 
 settings = Settings()

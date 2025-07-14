@@ -27,3 +27,8 @@ app = FastAPI(
     description='Сохранение и редактирование отзывов по товарам. FastAPI, MongoDB, Kafka, Docker',
 )
 app.include_router(api_v1_router)
+
+
+@app.get('/metrics')
+async def metrics():
+    pass
