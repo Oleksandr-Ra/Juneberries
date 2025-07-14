@@ -19,7 +19,7 @@ async def lifespan(app: FastAPI):
         host=settings.redis.host,
         port=settings.redis.port,
         db=settings.redis.db,
-        decode_responses=True,
+        decode_responses=False,
     )
     app.state.redis = RedisWithMetrics(redis_instance=redis_instance)
     logger.info('Successfully connected to Redis.')
