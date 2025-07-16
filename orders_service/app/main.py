@@ -11,3 +11,8 @@ app = FastAPI(
     description='Список оформленных заказов. FastAPI, PostgreSQL, SQLAlchemy(v2), Kafka, Docker',
 )
 app.include_router(api_v1_router)
+
+
+@app.get('/metrics')
+async def metrics():
+    pass
