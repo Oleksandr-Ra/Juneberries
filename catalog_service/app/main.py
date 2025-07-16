@@ -21,13 +21,18 @@ async def lifespan(app: FastAPI):
         db=settings.redis.db,
         decode_responses=False,
     )
-    app.state.redis = RedisWithMetrics(redis_instance=redis_instance)
-    logger.info('Successfully connected to Redis.')
+    try:
+        app.state.redis = RedisWithMetrics(redis_instance=redis_instance)
+        logger.info('Successfully connected to Redis.')
+    except Exception as e:
+        logger.error(f'Failed to connect to Redis: {e}')
 
     yield
 
-    await app.state.redis.close()
-    logger.info('Redis connection closed.')
+    if app.state.redis:
+        await app.state.redis.aclose()
+        logger.info('Redis connection closed.')
+    logger.info('Shutdown complete.')
 
 
 app = FastAPI(

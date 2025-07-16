@@ -1,4 +1,6 @@
+import asyncio
 import logging
+import random
 from datetime import timedelta
 
 import aiohttp
@@ -43,8 +45,8 @@ async def get_currency_rate(target_currency: str = 'RUB') -> float:
     return rate
 
 
-async def fetch_currency_rate_from_api() -> dict | None:
-    """Makes HTTP request to the external API to retrieve the rate."""
+async def fetch_currency_rate_from_api(retries: int = 3, base_delay: float = 1.0) -> dict | None:
+    """Makes HTTP request to the external API to retrieve the rate, with retry logic."""
 
     url = settings.exchange_api.url
     params = {
@@ -54,18 +56,24 @@ async def fetch_currency_rate_from_api() -> dict | None:
     }
     timeout = aiohttp.ClientTimeout(total=5.0)
 
-    async with aiohttp.ClientSession(timeout=timeout) as session:
-        try:
-            async with session.get(url=url, params=params) as response:
-                if response.status == 200:
-                    return await response.json()
-                else:
-                    logger.error(f'Error to get data from rate API.')
-                    return None
+    for attempt in range(1, retries):
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            try:
+                async with session.get(url=url, params=params) as response:
+                    if response.status == 200:
+                        return await response.json()
+                    else:
+                        logger.error(f'Error from rate API (status={response.status}). Attempt {attempt}/{retries}.')
 
-        except aiohttp.ClientConnectionError:
-            logger.error(f'No connection with catalog service. Try again later.')
-            return None
-        except aiohttp.ClientTimeout:
-            logger.error(f'Rate API is temporarily unavailable. Try again later.')
-            return None
+            except (aiohttp.ClientConnectionError, aiohttp.ClientTimeout) as e:
+                logger.error(f'API connection error: {e}. Attempt {attempt}/{retries}.')
+            except Exception as e:
+                logger.error(f'Unexpected error: {e}. Attempt {attempt}/{retries}.')
+
+        if attempt < retries:
+            delay = base_delay * (2 ** (attempt - 1))
+            jitter = random.uniform(0, delay)
+            logger.info(f'Waiting {jitter:.2f} seconds before next retry...')
+            await asyncio.sleep(jitter)
+
+    return None
