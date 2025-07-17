@@ -59,12 +59,11 @@ async def create_order(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Could not create order.')
 
     message = {
-        'event_type': 'ORDER_CREATED',
         'order_id': str(order.id),
         'delivery_price': float(order.delivery_price),
         'cart_price': float(order.cart_price),
     }
-    await producer.send(topic=settings.kafka.order_topic, value=message)
+    await producer.send(topic=settings.kafka.order_create_topic, value=message)
 
     return {'message': 'Your order has been accepted for processing.'}
 
@@ -111,16 +110,12 @@ async def process_message(message_data: dict,) -> None:
     order_id: str | None = message_data.get('order_id')
     if order_id is None:
         return None
-    delivery_price: float = message_data['delivery_price']
-    cart_price: float = message_data['cart_price']
-    total_price: float = message_data['total_price']
-    order_status: str = message_data['status']
 
     update_order_data = {
-        'delivery_price': delivery_price,
-        'cart_price': cart_price,
-        'total_price': total_price,
-        'status': order_status,
+        'delivery_price': message_data['delivery_price'],
+        'cart_price': message_data['cart_price'],
+        'total_price': message_data['total_price'],
+        'status': message_data['status'],
     }
 
     async with async_session() as session:
