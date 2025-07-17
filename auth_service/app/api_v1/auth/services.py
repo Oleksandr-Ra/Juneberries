@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 from uuid import UUID
 
@@ -5,13 +6,14 @@ from fastapi import Depends, HTTPException, status
 from jwt import ExpiredSignatureError, InvalidTokenError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .schemas import UserCreateSchema, AuthLoginSchema, AccessRefreshTokensSchema
-from . import crud
-
 from config import settings
 from db import get_db
 from models import User
 from utils import get_password_hash, verify_password, encode_jwt, decode_jwt
+from . import crud
+from .schemas import UserCreateSchema, AuthLoginSchema, AccessRefreshTokensSchema
+
+logger = logging.getLogger(__name__)
 
 ACCESS_TOKEN_TYPE = 'access'
 REFRESH_TOKEN_TYPE = 'refresh'
@@ -73,11 +75,13 @@ class AuthService:
         try:
             return decode_jwt(token)
         except ExpiredSignatureError:
+            logger.error('Token has expired')
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail='Token has expired',
             )
         except InvalidTokenError:
+            logger.error('Invalid token')
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail='Invalid token',
@@ -86,6 +90,7 @@ class AuthService:
     def validate_token_type(self, payload: dict, expected_type: str) -> None:
         actual_type = payload.get('type')
         if actual_type != expected_type:
+            logger.error(f'Invalid token type {actual_type!r}, expected {expected_type!r}')
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=f'Invalid token type {actual_type!r}, expected {expected_type!r}',
@@ -95,6 +100,7 @@ class AuthService:
         user_id = UUID(payload.get('sub'))
         user = await crud.get_user(session=self.session, user_id=user_id)
         if not user:
+            logger.error('Invalid token')
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail='Invalid token',

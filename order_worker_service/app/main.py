@@ -1,6 +1,5 @@
 import asyncio
 import json
-import logging
 from decimal import Decimal, ROUND_HALF_UP
 
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
@@ -9,11 +8,11 @@ from redis.asyncio import Redis
 
 import redis_connect
 from config import settings
+from logging_config import setup_logger
 from metrics import RedisWithMetrics, lag_watcher
 from utils import get_currency_rate
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+logger = setup_logger('order_worker_service')
 
 
 async def process_message(message_data: dict, producer: AIOKafkaProducer) -> None:
@@ -36,7 +35,6 @@ async def process_message(message_data: dict, producer: AIOKafkaProducer) -> Non
     total_price_target: Decimal = cart_price_target + delivery_price_target
 
     update_message = {
-        'event_type': 'ORDER_UPDATED',
         'order_id': order_id,
         'delivery_price': float(delivery_price_target),
         'cart_price': float(cart_price_target),
@@ -44,8 +42,8 @@ async def process_message(message_data: dict, producer: AIOKafkaProducer) -> Non
         'status': 'updated',
     }
 
-    await producer.send(topic=settings.kafka.order_topic, value=update_message)
-    logger.info(f'ORDER_UPDATED event sent (order_id: {order_id})')
+    await producer.send(topic=settings.kafka.order_update_topic, value=update_message)
+    logger.info(f'Order update data has been sent (order_id: {order_id})')
 
 
 async def main() -> None:
@@ -56,7 +54,7 @@ async def main() -> None:
         request_timeout_ms=10000,
     )
     consumer = AIOKafkaConsumer(
-        settings.kafka.order_topic,
+        settings.kafka.order_create_topic,
         bootstrap_servers=settings.kafka.broker,
         value_deserializer=lambda v: json.loads(v.decode('utf-8')),
         auto_offset_reset='earliest',
@@ -85,9 +83,8 @@ async def main() -> None:
         lag_task = asyncio.create_task(lag_watcher(consumer))
 
         async for msg in consumer:
-            if msg.value.get('event_type') == 'ORDER_CREATED':
-                await process_message(message_data=msg.value, producer=producer)
-                await consumer.commit()
+            await process_message(message_data=msg.value, producer=producer)
+            await consumer.commit()
 
     except Exception as e:
         logger.error(f'A critical error occurred: {e}', exc_info=True)

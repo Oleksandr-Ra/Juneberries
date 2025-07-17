@@ -1,4 +1,3 @@
-import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -6,11 +5,11 @@ from fastapi.responses import ORJSONResponse
 from redis.asyncio import Redis
 
 from api_v1 import router as api_v1_router
+from logging_config import setup_logger
 from config import settings
 from metrics import metrics_middleware, metrics_endpoint, RedisWithMetrics
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+logger = setup_logger('catalog_service')
 
 
 @asynccontextmanager

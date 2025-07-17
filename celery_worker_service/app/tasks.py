@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import random
 from datetime import timedelta
 
@@ -8,8 +7,9 @@ import aiohttp
 import redis_connect
 from celery_app import celery
 from config import settings
+from logging_config import setup_logger
 
-logger = logging.getLogger(__name__)
+logger = setup_logger('celery_worker_service')
 
 
 @celery.task(name='tasks.update_currency_rate')
@@ -24,7 +24,7 @@ async def update_currency_rate() -> None:
     logger.info('Starting scheduled currency rate update...')
 
     if redis_connect.redis_client is None:
-        logger.error('Cannot update rate: Redis client not initialized.')
+        logger.error('Cannot update rate from Redis, client not initialized.')
         return
 
     try:

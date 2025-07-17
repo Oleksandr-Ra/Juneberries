@@ -9,16 +9,16 @@ from fastapi import FastAPI
 from api_v1.orders.services import process_message
 from config import settings
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
 async def consume_events():
     consumer = AIOKafkaConsumer(
-        settings.kafka.order_topic,
+        settings.kafka.order_update_topic,
         bootstrap_servers=[settings.kafka.broker],
         value_deserializer=lambda v: json.loads(v.decode('utf-8')),
         auto_offset_reset='earliest',
+        enable_auto_commit=False,
     )
     try:
         await consumer.start()
@@ -27,9 +27,8 @@ async def consume_events():
 
     try:
         async for msg in consumer:
-            logger.info(f'Received: {msg.value} | type: {type(msg.value)}')
-            if msg.value.get('event_type') == 'ORDER_UPDATED':
-                await process_message(message_data=msg.value)
+            await process_message(message_data=msg.value)
+            await consumer.commit()
     finally:
         await consumer.stop()
 
