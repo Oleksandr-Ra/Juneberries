@@ -60,4 +60,4 @@ class RedisWithMetrics:
         return wrapper
 
     async def close(self):
-        await self.client.close()
+        await self.client.aclose()

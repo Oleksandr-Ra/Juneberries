@@ -9,3 +9,4 @@ scrape_configs:
         - "catalog-api:8000"
         - "orders-api:8000"
         - "reviews-api:8000"
+        - "order-worker:8000"
