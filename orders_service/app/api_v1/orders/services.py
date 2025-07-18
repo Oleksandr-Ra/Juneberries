@@ -128,4 +128,4 @@ async def process_message(message_data: dict,) -> None:
             order=order,
             order_data=update_order_data,
         )
-        logger.error(f'Order {order_id} successfully updated!')
+        logger.info(f'Order {order_id} successfully updated!')

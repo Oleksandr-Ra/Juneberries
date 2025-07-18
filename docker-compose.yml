@@ -89,6 +89,7 @@ services:
         condition: service_healthy
     volumes:
       - ./auth_service/app/:/app
+      - ./logs:/app/logs
     ports:
       - "8003:8000"
     env_file:
@@ -104,6 +105,7 @@ services:
         condition: service_healthy
     volumes:
       - ./catalog_service/app/:/app
+      - ./logs:/app/logs
     ports:
       - "8000:8000"
     env_file:
@@ -121,6 +123,7 @@ services:
         condition: service_healthy
     volumes:
       - ./orders_service/app/:/app
+      - ./logs:/app/logs
     ports:
       - "8001:8000"
     env_file:
@@ -136,6 +139,7 @@ services:
         condition: service_healthy
     volumes:
       - ./reviews_service/app/:/app
+      - ./logs:/app/logs
     ports:
       - "8002:8000"
     env_file:
@@ -153,6 +157,7 @@ services:
         condition: service_healthy
     volumes:
       - ./order_worker_service/app/:/app
+      - ./logs:/app/logs
     env_file:
       - order_worker_service/.env
 
@@ -167,6 +172,7 @@ services:
         condition: service_healthy
     volumes:
       - ./celery_worker_service/app/:/app
+      - ./logs:/app/logs
     env_file:
       - celery_worker_service/.env
 
@@ -181,6 +187,7 @@ services:
         condition: service_healthy
     volumes:
       - ./celery_worker_service/app/:/app
+      - ./logs:/app/logs
     env_file:
       - celery_worker_service/.env
 
@@ -273,6 +280,7 @@ services:
     image: docker.elastic.co/logstash/logstash:9.0.3
     volumes:
       - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - ./logs:/logs
     depends_on:
       - elasticsearch
     environment:

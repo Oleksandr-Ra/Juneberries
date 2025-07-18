@@ -1,6 +1,6 @@
 import json
 import logging
-import sys
+import os
 from datetime import datetime, timezone
 
 
@@ -22,7 +22,11 @@ class JsonFormatter(logging.Formatter):
 def setup_logger(service_name: str = 'service_name'):
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
-    handler = logging.StreamHandler(sys.stdout)
+
+    log_dir = './logs'
+    os.makedirs(log_dir, exist_ok=True)
+    handler = logging.FileHandler(f'{log_dir}/{service_name}.log')
     handler.setFormatter(JsonFormatter(service_name))
+
     logger.handlers = [handler]
     return logger
