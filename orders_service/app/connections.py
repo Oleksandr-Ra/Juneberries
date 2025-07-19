@@ -1,5 +1,5 @@
-from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
-from fastapi import Request, HTTPException, status
+from aiokafka import AIOKafkaProducer
+from fastapi import Request
 
 
 async def get_producer(request: Request) -> AIOKafkaProducer:
@@ -7,9 +7,6 @@ async def get_producer(request: Request) -> AIOKafkaProducer:
     FastAPI dependency to get AIOKafkaProducer from "app.state".
     """
     producer = getattr(request.app.state, 'producer', None)
-    if not producer:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail='AIOKafkaProducer not available'
-        )
+    if producer is None:
+        raise RuntimeError('AIOKafkaProducer is not initialized')
     return producer

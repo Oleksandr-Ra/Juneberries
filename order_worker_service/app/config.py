@@ -4,7 +4,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class KafkaConfig(BaseModel):
     broker: str
-    order_topic: str
+    order_create_topic: str
+    order_update_topic: str
 
 
 class RedisConfig(BaseModel):

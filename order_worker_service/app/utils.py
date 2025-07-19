@@ -4,9 +4,10 @@ import random
 from datetime import timedelta
 
 import aiohttp
+from redis.asyncio import Redis
 
-import redis_connect
 from config import settings
+from redis_connect import get_redis
 
 logger = logging.getLogger(__name__)
 
@@ -16,12 +17,11 @@ async def get_currency_rate(target_currency: str = 'RUB') -> float:
     Retrieves currency rate. First it searches in Redis,
     if it doesn't find it, it accesses external API.
     """
-    if redis_connect.redis_client is None:
-        raise RuntimeError('Redis client not initialized')
+    redis: Redis = await get_redis()
 
     rate_key: str = f'rates:{settings.exchange_api.base_currency}_{target_currency}'
     # 1. Get from Redis
-    cached_rate: str | None = await redis_connect.redis_client.get(rate_key)
+    cached_rate: str | None = await redis.get(rate_key)
     if cached_rate:
         logger.info(f'Found currency rate in cache: {cached_rate}')
         return float(cached_rate)
@@ -31,13 +31,14 @@ async def get_currency_rate(target_currency: str = 'RUB') -> float:
 
     response: dict | None = await fetch_currency_rate_from_api()
     if response is None:
-        raise
+        logger.error('External API returned no response')
+        raise RuntimeError('Failed to fetch currency rate from external API.')
 
     rate: float = response['rates'][target_currency]  # get rate from response
     logger.info(f'Fetched new rate from API: {rate_key} = {rate}')
 
     # Set in Redis with expiration
-    await redis_connect.redis_client.set(
+    await redis.set(
         name=rate_key,
         value=rate,
         ex=timedelta(minutes=settings.redis.rate_exp),

@@ -2,7 +2,10 @@ from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 
 from api_v1 import router as api_v1_router
+from logging_config import setup_logger
 from metrics import metrics_middleware, metrics_endpoint
+
+logger = setup_logger('auth_service')
 
 
 app = FastAPI(

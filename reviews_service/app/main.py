@@ -7,9 +7,9 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 from api_v1 import router as api_v1_router
 from config import settings
+from logging_config import setup_logger
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+logger = setup_logger('reviews_service')
 
 
 @asynccontextmanager
@@ -21,8 +21,9 @@ async def lifespan(app_: FastAPI):
 
     yield
 
-    client.close()
-    logger.info('MongoDB connection closed')
+    if app_.state.mongo_client:
+        app_.state.mongo_client.close()
+        logger.info('MongoDB connection closed')
 
 
 app = FastAPI(

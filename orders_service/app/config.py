@@ -9,7 +9,8 @@ class AuthJWT(BaseModel):
 
 class KafkaConfig(BaseModel):
     broker: str
-    order_topic: str
+    order_create_topic: str
+    order_update_topic: str
 
 
 class DatabaseConfig(BaseModel):
