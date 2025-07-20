@@ -1,4 +1,3 @@
-import logging
 import random
 import time
 from datetime import timedelta
@@ -8,8 +7,9 @@ import requests
 import redis_connect
 from celery_app import celery
 from config import settings
+from logging_config import setup_logger
 
-logger = logging.getLogger(__name__)
+logger = setup_logger('celery_worker_service')
 
 
 @celery.task(name='tasks.update_currency_rate')
