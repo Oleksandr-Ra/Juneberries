@@ -106,7 +106,7 @@ async def delete_order(
     await crud.delete_order(session=session, order=order)
 
 
-async def process_message(message_data: dict,) -> None:
+async def process_message(message_data: dict) -> None:
     order_id: str | None = message_data.get('order_id')
     if order_id is None:
         return None
