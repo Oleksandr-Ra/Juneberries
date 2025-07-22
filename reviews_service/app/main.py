@@ -7,6 +7,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from api_v1 import router as api_v1_router
 from config import settings
 from logging_config import setup_logger
+from metrics import metrics_middleware, metrics_endpoint
 
 logger = setup_logger('reviews_service')
 
@@ -32,11 +33,12 @@ app = FastAPI(
     description='Сохранение и редактирование отзывов по товарам. FastAPI, MongoDB, Kafka, Docker',
 )
 app.include_router(api_v1_router)
+app.middleware('http')(metrics_middleware)
 
 
 @app.get('/metrics', tags=['Metrics'])
 async def metrics():
-    pass
+    return metrics_endpoint()
 
 
 @app.get('/live', tags=['HealthCheck'])
