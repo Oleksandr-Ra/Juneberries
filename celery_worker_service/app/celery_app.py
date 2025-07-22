@@ -1,10 +1,15 @@
 from celery import Celery
 from celery.schedules import crontab
+from celery.signals import setup_logging
 
 from config import settings
 from logging_config import setup_logger
 
-logger = setup_logger('celery_worker_service')
+
+@setup_logging.connect()
+def configure_logging(**kwargs):
+    setup_logger(service_name='celery_worker_service')
+
 
 celery = Celery(
     main='app',

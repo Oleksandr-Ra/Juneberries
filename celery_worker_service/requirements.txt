@@ -1,4 +1,5 @@
 celery==5.5.3
+prometheus_client==0.22.1
 pydantic==2.11.5
 pydantic-settings==2.9.1
 redis==6.2.0

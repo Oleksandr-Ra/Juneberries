@@ -8,6 +8,7 @@ from api_v1 import router as api_v1_router
 from db import get_db
 from lifespan import lifespan
 from logging_config import setup_logger
+from metrics import metrics_middleware, metrics_endpoint
 
 logger = setup_logger('orders_service')
 
@@ -18,11 +19,12 @@ app = FastAPI(
     description='Список оформленных заказов. FastAPI, PostgreSQL, SQLAlchemy(v2), Kafka, Docker',
 )
 app.include_router(api_v1_router)
+app.middleware('http')(metrics_middleware)
 
 
 @app.get('/metrics', tags=['Metrics'])
 async def metrics():
-    pass
+    return metrics_endpoint()
 
 
 @app.get('/live', tags=['HealthCheck'])
