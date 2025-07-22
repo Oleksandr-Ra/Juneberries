@@ -33,14 +33,14 @@ def update_currency_rate() -> None:
             return
 
         rate: float = response['rates'][target_currency]
-        logger.info(f'Fetched new rate from API: "{rate_key}" = {rate}')
+        logger.info(f'Fetched new rate from API: {rate_key} = {rate}')
 
         redis_connect.redis_client.set(
             name=rate_key,
             value=rate,
             ex=timedelta(minutes=settings.redis.rate_exp),
         )
-        logger.info(f'Successfully updated and cached currency rate for: "{rate_key}".')
+        logger.info(f'Successfully updated and cached currency rate for: {rate_key}.')
 
     except Exception as e:
         logger.error(f'An error occurred during currency rate update: {e}', exc_info=True)
