@@ -1,16 +1,18 @@
-import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
-from fastapi.responses import ORJSONResponse
+from fastapi import FastAPI, Depends, Request
+from fastapi.responses import ORJSONResponse, JSONResponse
 from redis.asyncio import Redis
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from api_v1 import router as api_v1_router
+from db import get_db
+from logging_config import setup_logger
 from config import settings
 from metrics import metrics_middleware, metrics_endpoint, RedisWithMetrics
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+logger = setup_logger('catalog_service')
 
 
 @asynccontextmanager
@@ -46,6 +48,31 @@ app.include_router(api_v1_router)
 app.middleware('http')(metrics_middleware)
 
 
-@app.get('/metrics')
+@app.get('/metrics', tags=['Metrics'])
 def metrics():
     return metrics_endpoint()
+
+
+@app.get('/live', tags=['HealthCheck'])
+def liveness_check():
+    return {'status': 'alive'}
+
+
+@app.get('/ready', tags=['HealthCheck'])
+async def readiness_check(
+        request: Request,
+        session: AsyncSession = Depends(get_db),
+):
+    try:
+        # DB
+        await session.execute(text('SELECT 1'))
+        # Redis
+        await request.app.state.redis.ping()
+
+        return {'status': 'ready'}
+
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={'status': 'not ready', 'reason': str(e)},
+        )

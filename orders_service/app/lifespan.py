@@ -9,27 +9,14 @@ from fastapi import FastAPI
 from api_v1.orders.services import process_message
 from config import settings
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
-async def consume_events():
-    consumer = AIOKafkaConsumer(
-        settings.kafka.order_topic,
-        bootstrap_servers=[settings.kafka.broker],
-        value_deserializer=lambda v: json.loads(v.decode('utf-8')),
-        auto_offset_reset='earliest',
-    )
-    try:
-        await consumer.start()
-    except Exception as e:
-        logger.error(f'Could not connect to AIOKafkaConsumer: {e}')
-
+async def consume_events(consumer: AIOKafkaConsumer):
     try:
         async for msg in consumer:
-            logger.info(f'Received: {msg.value} | type: {type(msg.value)}')
-            if msg.value.get('event_type') == 'ORDER_UPDATED':
-                await process_message(message_data=msg.value)
+            await process_message(message_data=msg.value)
+            await consumer.commit()
     finally:
         await consumer.stop()
 
@@ -37,34 +24,68 @@ async def consume_events():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """START and STOP: AIOKafkaProducer, AIOKafkaConsumer"""
+    # --- PRODUCER ---
     producer = AIOKafkaProducer(
         bootstrap_servers=[settings.kafka.broker],
         value_serializer=lambda v: json.dumps(v).encode('utf-8'),
     )
     try:
         await producer.start()
+        app.state.producer = producer
+        logger.info('Successfully connected to AIOKafkaProducer.')
     except Exception as e:
         app.state.producer = None
         logger.error(f'Could not connect to AIOKafkaProducer: {e}')
 
-    app.state.producer = producer
-    logger.info('Successfully connected to AIOKafkaProducer.')
+    # --- CONSUMER ---
+    consumer = AIOKafkaConsumer(
+        settings.kafka.order_update_topic,
+        bootstrap_servers=[settings.kafka.broker],
+        value_deserializer=lambda v: json.loads(v.decode('utf-8')),
+        auto_offset_reset='earliest',
+        enable_auto_commit=False,
+        group_id='orders_service_group'
+    )
+    try:
+        await consumer.start()
+        app.state.consumer = consumer
+        logger.info('Successfully connected to AIOKafkaConsumer.')
+    except Exception as e:
+        app.state.consumer = None
+        logger.error(f'Could not connect to AIOKafkaConsumer: {e}')
 
-    consumer_task = asyncio.create_task(consume_events())
-    app.state.consumer_task = consumer_task
-    logger.info('Successfully connected to AIOKafkaConsumer.')
+    # --- START CONSUMER TASK ---
+    consumer = getattr(app.state, 'consumer', None)
+    if consumer:
+        consumer_task = asyncio.create_task(consume_events(consumer=consumer))
+        app.state.consumer_task = consumer_task
 
     yield
 
-    if app.state.producer:
-        await app.state.producer.flush()
-        await app.state.producer.stop()
+    # --- SHUTDOWN PRODUCER ---
+    producer = getattr(app.state, 'producer', None)
+    if producer:
+        await producer.flush()
+        await producer.stop()
         logger.info('AIOKafkaProducer closed')
     else:
         logger.info('No active AIOKafkaProducer found in "app.state" to close.')
 
-    app.state.consumer_task.cancel()
-    try:
-        await app.state.consumer_task
-    except asyncio.CancelledError:
-        logger.info('Consumer task successfully canceled')
+    # --- SHUTDOWN CONSUMER ---
+    consumer = getattr(app.state, 'consumer', None)
+    if consumer:
+        await consumer.stop()
+        logger.info('AIOKafkaConsumer closed')
+    else:
+        logger.info('No active AIOKafkaConsumer found in "app.state" to close.')
+
+    # --- CANCEL CONSUMER TASK ---
+    consumer_task = getattr(app.state, 'consumer_task', None)
+    if consumer_task:
+        consumer_task.cancel()
+        try:
+            await consumer_task
+        except asyncio.CancelledError:
+            logger.info('Consumer task successfully canceled')
+    else:
+        logger.info('No active consumer task found in "app.state" to cancel.')

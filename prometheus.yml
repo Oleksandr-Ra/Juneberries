@@ -10,3 +10,4 @@ scrape_configs:
         - "orders-api:8000"
         - "reviews-api:8000"
         - "order-worker:8000"
+        - "celery-worker:8000"
