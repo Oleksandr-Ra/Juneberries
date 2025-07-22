@@ -1,3 +1,5 @@
+import sys
+
 from prometheus_client import Counter, start_http_server
 
 REDIS_OPS = Counter(
@@ -28,4 +30,6 @@ class RedisWithMetrics:
         await self.client.close()
 
 
-start_http_server(8000)
+is_worker_process: bool = 'worker' in sys.argv
+if is_worker_process:
+    start_http_server(8000)
